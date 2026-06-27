@@ -21,7 +21,9 @@ const privateCors =
   cors({
 
     origin: [
-      "http://localhost:5173"
+      "https://ai-voice-assistant-y7a8.onrender.com",
+      "http://localhost:5173",
+      "http://localhost:3000"
     ],
 
     credentials: true
