@@ -195,65 +195,123 @@
             ".shifra-mic"
         );
 
+    // Speech state management
+    let isSpeaking = false;
+    let currentLang = "en-US"; // Default to English
 
+    // Language detection function
+    const detectLanguage = (text) => {
+        // Check for Hindi characters (Devanagari script range: \u0900-\u097F)
+        const hindiRegex = /[\u0900-\u097F]/;
+        return hindiRegex.test(text) ? "hi-IN" : "en-US";
+    };
+
+    // Voice selection function
+    const selectVoice = (lang) => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0) return null;
+
+        // For English, prefer female voices in specific order
+        if (lang === "en-US" || lang === "en-GB") {
+            const preferredVoices = [
+                "Microsoft Zira",
+                "Microsoft Jenny",
+                "Google UK English Female"
+            ];
+
+            // Try preferred voices first
+            for (const preferred of preferredVoices) {
+                const voice = voices.find(v => v.name.includes(preferred));
+                if (voice) return voice;
+            }
+
+            // Try any female English voice
+            const femaleVoice = voices.find(v => 
+                v.lang.startsWith("en") && 
+                (v.name.includes("Female") || v.name.includes("female"))
+            );
+            if (femaleVoice) return femaleVoice;
+        }
+
+        // For Hindi, prefer Hindi voices
+        if (lang === "hi-IN") {
+            const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+            if (hindiVoice) return hindiVoice;
+        }
+
+        // Fallback to first available voice
+        return voices[0];
+    };
 
     // text-speech
 
     const speak = (text) => {
         console.log("AI Response:", text);
-        window.speechSynthesis.cancel();
-
-        // Show AI response
-        aiText.innerText =
-            text;
-
-        status.innerText =
-            "AI Speaking...";
-
-        const speech = new SpeechSynthesisUtterance(text)
-        console.log("Creating utterance");
-
-        speech.lang =
-            "hi-IN";
-
-        speech.rate = 1;
-
-        speech.pitch = 1;
-
-        speech.volume = 1;
-
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            speech.voice = voices[0];
-            console.log("Selected voice:", speech.voice);
+        
+        // Prevent overlapping speech
+        if (isSpeaking) {
+            console.log("Already speaking, skipping duplicate request");
+            return;
         }
 
-        // Voice end
-        speech.onend = () => {
-            console.log("Speech ended");
-            status.innerText =
-                "Tap button to Speak";
+        // Cancel any existing speech
+        window.speechSynthesis.cancel();
 
-            wave.style.opacity =
-                "0";
-        };
+        // Wait 100ms before speaking to prevent "interrupted" errors
+        setTimeout(() => {
+            // Show AI response
+            aiText.innerText = text;
 
-        speech.onstart = () => {
-            console.log("Speech started");
-        };
+            status.innerText = "AI Speaking...";
 
-        speech.onerror = (e) => {
-            console.error("Speech error", e);
-        };
+            // Detect language from the response text
+            const detectedLang = detectLanguage(text);
+            currentLang = detectedLang;
 
-        console.log("speechSynthesis.speaking", window.speechSynthesis.speaking);
-        console.log("speechSynthesis.pending", window.speechSynthesis.pending);
-        console.log("Calling speechSynthesis.speak()");
+            const speech = new SpeechSynthesisUtterance(text);
+            console.log("Creating utterance with language:", detectedLang);
 
-        // Start speaking
-        window.speechSynthesis.speak(
-            speech
-        );
+            speech.lang = detectedLang;
+            speech.rate = 1;
+            speech.pitch = 1;
+            speech.volume = 1;
+
+            // Select appropriate voice
+            const selectedVoice = selectVoice(detectedLang);
+            if (selectedVoice) {
+                speech.voice = selectedVoice;
+                console.log("Selected voice:", selectedVoice.name);
+            }
+
+            // Set speaking state
+            isSpeaking = true;
+
+            // Voice end
+            speech.onend = () => {
+                console.log("Speech ended");
+                isSpeaking = false;
+                status.innerText = "Tap button to Speak";
+                wave.style.opacity = "0";
+            };
+
+            speech.onstart = () => {
+                console.log("Speech started");
+            };
+
+            speech.onerror = (e) => {
+                console.error("Speech error", e);
+                isSpeaking = false;
+                status.innerText = "Tap button to Speak";
+                wave.style.opacity = "0";
+            };
+
+            console.log("speechSynthesis.speaking", window.speechSynthesis.speaking);
+            console.log("speechSynthesis.pending", window.speechSynthesis.pending);
+            console.log("Calling speechSynthesis.speak()");
+
+            // Start speaking
+            window.speechSynthesis.speak(speech);
+        }, 100);
     }
 
 
@@ -264,8 +322,7 @@
 
         const recognition = new SpeechRecognition();
 
-        recognition.lang =
-      "en-US";
+        recognition.lang = currentLang;
 
     recognition.continuous =
       false;
@@ -295,6 +352,9 @@
         const text = e.results[0][0].transcript
 
         userText.innerText = "You: " + text;
+
+        // Detect language from user input and update currentLang
+        currentLang = detectLanguage(text);
 
         recognition.stop();
 
