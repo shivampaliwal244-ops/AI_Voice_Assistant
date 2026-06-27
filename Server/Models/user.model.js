@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
     },
     assistantName:{
         type:String,
-        default:"Shifra"
+        default:"Shifra AI"
     },
     businessName:{
         type:String,

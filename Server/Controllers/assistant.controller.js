@@ -39,6 +39,14 @@ export const askAssistant = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User is not found" })
         }
+
+        // Automatic migration: Update old default assistant names to "Shifra AI"
+        const oldDefaultNames = ["Jarvis", "JARVIS", "Zarvis", "ZARVIS", "Shifra"]
+        if (oldDefaultNames.includes(user.assistantName)) {
+            user.assistantName = "Shifra AI"
+            await user.save()
+        }
+
         if (!user.geminiApiKey) {
             return res.status(400).json({ message: "gemini apikey is not added" })
         }

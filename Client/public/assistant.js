@@ -200,6 +200,7 @@
     // text-speech
 
     const speak = (text) => {
+        console.log("AI Response:", text);
         window.speechSynthesis.cancel();
 
         // Show AI response
@@ -210,6 +211,7 @@
             "AI Speaking...";
 
         const speech = new SpeechSynthesisUtterance(text)
+        console.log("Creating utterance");
 
         speech.lang =
             "hi-IN";
@@ -220,15 +222,33 @@
 
         speech.volume = 1;
 
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            speech.voice = voices[0];
+            console.log("Selected voice:", speech.voice);
+        }
+
         // Voice end
         speech.onend = () => {
-
+            console.log("Speech ended");
             status.innerText =
                 "Tap button to Speak";
 
             wave.style.opacity =
                 "0";
         };
+
+        speech.onstart = () => {
+            console.log("Speech started");
+        };
+
+        speech.onerror = (e) => {
+            console.error("Speech error", e);
+        };
+
+        console.log("speechSynthesis.speaking", window.speechSynthesis.speaking);
+        console.log("speechSynthesis.pending", window.speechSynthesis.pending);
+        console.log("Calling speechSynthesis.speak()");
 
         // Start speaking
         window.speechSynthesis.speak(
