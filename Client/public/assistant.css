@@ -611,4 +611,55 @@ margin-top:18px;
   }
 }
 
+@media(max-width:400px){
+  .shifra-popup{
+    width:320px;
+    min-width:320px;
+    max-width:320px;
+
+    height:540px;
+    min-height:540px;
+    max-height:540px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:70px;
+
+    border-radius:24px;
+  }
+
+  .shifra-btn{
+    width:60px;
+    height:60px;
+    right:10px;
+    bottom:10px;
+  }
+  .shifra-btn img{
+    width: 28px;
+    height: 28px;
+  }
+
+   .shifra-title{
+    font-size:24px;
+  }
+
+  .shifra-sub{
+    font-size:12px;
+  }
+
+  .shifra-orb{
+    width:100px;
+    height:100px;
+  }
+
+  .shifra-mic{
+    width:68px;
+    height:68px;
+  }
+
+  .shifra-mic-icon{
+    width:28px;
+    height:28px;
+  }
+}
 
