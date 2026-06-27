@@ -1,9 +1,15 @@
-import express from "express"
+import express from "express";
+import dns from "dns"; // 👈 Add this
 import dotenv from "dotenv"
 import connectDB from "./Configs/ConnectDB.js"
 import authRouter from "./Routes/auth.route.js"
 import cookieParser from "cookie-parser"
 dotenv.config()
+
+// 👇 Add these lines after dotenv.config()
+dns.setDefaultResultOrder("ipv4first");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import cors from "cors"
 import userRouter from "./Routes/user.route.js"
 import assistantRouter from "./Routes/assistant.route.js"
