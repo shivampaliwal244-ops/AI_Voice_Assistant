@@ -5,17 +5,22 @@ export const isAuth = async (req,res,next) => {
         const token = req.cookies.token
 
         if(!token){
-            return res.status(400).json({message:"user does not have token"})
+            // No token provided, but don't block - allow public access
+            req.userId = null
+            return next()
         }
 
         const verifyToken = jwt.verify(token ,process.env.JWT_SECRET)
         if(!verifyToken){
-            return res.status(400).json({message:"user does not have  valid token"})
+            req.userId = null
+            return next()
         }
         req.userId = verifyToken.userId
         next()
     } catch (error) {
             console.log(error)
-         return res.status(500).json({message:`isAuth error ${error}`})
+            // Don't block on error, allow public access
+            req.userId = null
+            next()
     }
 }

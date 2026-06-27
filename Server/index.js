@@ -32,7 +32,12 @@ const privateCors =
 
   const publicCors =
   cors({
-    origin: "*",
+    origin: [
+      "https://ai-voice-assistant-y7a8.onrender.com",
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ],
+    credentials: true
   });
 
 app.use(express.json())

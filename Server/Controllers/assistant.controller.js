@@ -23,11 +23,18 @@ export const askAssistant = async (req, res) => {
     try {
         const { message, userId } = req.body
 
-        if (!message || !userId) {
-            return res.status(400).json({ message: "Message and UserId are required" })
+        if (!message) {
+            return res.status(400).json({ message: "Message is required" })
         }
 
-        const user = await User.findById(userId)
+        // Use authenticated userId from middleware if available, otherwise use userId from body (for public embed)
+        const targetUserId = req.userId || userId
+
+        if (!targetUserId) {
+            return res.status(400).json({ message: "UserId is required" })
+        }
+
+        const user = await User.findById(targetUserId)
 
         if (!user) {
             return res.status(404).json({ message: "User is not found" })

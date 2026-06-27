@@ -286,6 +286,7 @@
 
                 const res = await fetch("https://ai-voice-assistant-server-backend.onrender.com/api/assistant/ask" , {
                     method:"POST",
+                    credentials:"include",
                     headers:{
                         "Content-Type":
                       "application/json",
