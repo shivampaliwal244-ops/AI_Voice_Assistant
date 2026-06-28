@@ -295,14 +295,14 @@
         window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
-    // Language detection function
+    // Language detection - REMOVED
+    // Always use English-only as per requirements
+    // No Hindi detection, no Roman Hindi conversion
     const detectLanguage = (text) => {
-        // Check for Hindi characters (Devanagari script range: \u0900-\u097F)
-        const hindiRegex = /[\u0900-\u097F]/;
-        return hindiRegex.test(text) ? "hi-IN" : "en-US";
+        return "en-US"; // Always English
     };
 
-    // Voice selection function
+    // Voice selection function - English only
     const selectVoice = (lang) => {
         const voices = window.speechSynthesis.getVoices();
         console.log("Available voices:", voices.length);
@@ -312,75 +312,45 @@
             return null;
         }
 
-        // For English, prefer female voices in specific order
-        if (lang === "en-US" || lang === "en-GB") {
-            const preferredVoices = [
-                "Microsoft Zira",
-                "Microsoft Jenny",
-                "Google UK English Female"
-            ];
+        // Always prefer English voices only
+        const preferredVoices = [
+            "Microsoft Zira",
+            "Microsoft Jenny",
+            "Google US English",
+            "Google UK English Female",
+            "Microsoft Aria",
+            "Microsoft David"
+        ];
 
-            // Try preferred voices first
-            for (const preferred of preferredVoices) {
-                const voice = voices.find(v => v.name.includes(preferred));
-                if (voice) {
-                    console.log("Found preferred voice:", voice.name);
-                    return voice;
-                }
-            }
-
-            // Try any female English voice
-            const femaleVoice = voices.find(v => 
-                v.lang.startsWith("en") && 
-                (v.name.includes("Female") || v.name.includes("female"))
-            );
-            if (femaleVoice) {
-                console.log("Found female English voice:", femaleVoice.name);
-                return femaleVoice;
-            }
-            
-            // Try any English voice
-            const englishVoice = voices.find(v => v.lang.startsWith("en"));
-            if (englishVoice) {
-                console.log("Found English voice:", englishVoice.name);
-                return englishVoice;
+        // Try preferred voices first
+        for (const preferred of preferredVoices) {
+            const voice = voices.find(v => v.name.includes(preferred));
+            if (voice) {
+                console.log("Found preferred voice:", voice.name);
+                return voice;
             }
         }
 
-        // For Hindi, prefer Microsoft/Google Hindi voices
-        if (lang === "hi-IN") {
-            const preferredHindiVoices = [
-                "Microsoft Swara",
-                "Microsoft Heera",
-                "Microsoft Kalpana",
-                "Google हिन्दी",
-                "Google Hindi"
-            ];
-
-            // Preferred Hindi voices
-            for (const preferred of preferredHindiVoices) {
-                const voice = voices.find(v =>
-                    v.name.includes(preferred)
-                );
-                if (voice) {
-                    console.log("Selected Hindi voice:", voice.name);
-                    return voice;
-                }
-            }
-
-            // Any Hindi voice
-            const hindiVoice = voices.find(v =>
-                v.lang.toLowerCase().startsWith("hi")
-            );
-            if (hindiVoice) {
-                console.log("Fallback Hindi voice:", hindiVoice.name);
-                return hindiVoice;
-            }
-
-            console.warn("No Hindi voice found.");
+        // Try any English voice (exclude Indian English to avoid Hindi-accented voices)
+        const englishVoice = voices.find(v => 
+            v.lang.startsWith("en") && 
+            !v.lang.includes("IN") && // Exclude English India
+            !v.name.includes("Heera") && // Exclude Microsoft Heera
+            !v.name.includes("India")
+        );
+        if (englishVoice) {
+            console.log("Found English voice (non-India):", englishVoice.name);
+            return englishVoice;
+        }
+        
+        // Fallback to any English voice including India if no other option
+        const anyEnglishVoice = voices.find(v => v.lang.startsWith("en"));
+        if (anyEnglishVoice) {
+            console.log("Fallback to any English voice:", anyEnglishVoice.name);
+            return anyEnglishVoice;
         }
 
-        // Fallback to first available voice
+        // Final fallback to first available voice
         console.log("Using fallback voice:", voices[0].name);
         return voices[0];
     };
@@ -434,21 +404,21 @@
 
             status.innerText = "AI Speaking...";
 
-            // Detect language from the response text
-            const detectedLang = detectLanguage(text);
-            currentLang = detectedLang;
-            console.log("Detected language:", detectedLang);
+            // Force English-only speech
+            const forcedLang = "en-US";
+            currentLang = forcedLang;
+            console.log("Forced speech language: en-US");
 
             const speech = new SpeechSynthesisUtterance(text);
-            console.log("Creating utterance with language:", detectedLang);
+            console.log("Creating utterance with language: en-US");
 
-            speech.lang = detectedLang;
+            speech.lang = "en-US"; // Force English US
             speech.rate = 1;
             speech.pitch = 1;
             speech.volume = 1;
 
-            // Select appropriate voice
-            const selectedVoice = selectVoice(detectedLang);
+            // Select appropriate voice (always English)
+            const selectedVoice = selectVoice("en-US");
             if (selectedVoice) {
                 speech.voice = selectedVoice;
                 console.log("Selected voice:", selectedVoice.name);
@@ -530,9 +500,9 @@
 
         const recognition = new SpeechRecognition();
 
-        // hi-IN recognizes BOTH Hindi and English in Chrome/Edge
-        // This is the critical fix — en-US cannot transcribe Hindi speech
-        recognition.lang = "hi-IN";
+        // Force English-India recognition (recognizes English well)
+        // Changed from hi-IN to en-IN as per requirements
+        recognition.lang = "en-IN";
         recognition.continuous = false;
         recognition.interimResults = false;
 
@@ -556,14 +526,15 @@
 
 
         recognition.onresult = (e) => {
-            const text = e.results[0][0].transcript;
-            console.log("Raw transcript:", text);
+            const transcript = e.results[0][0].transcript;
+            console.log("Raw transcript:", transcript);
 
-            userText.innerText = "You: " + text;
+            // Always use English - no language detection
+            currentLang = "en-US";
+            console.log("Forced language: en-US");
 
-            // Detect language: Devanagari script = hi-IN, else en-US
-            currentLang = detectLanguage(text);
-            console.log("Detected language:", currentLang);
+            // Display transcript as-is
+            userText.innerText = "You: " + transcript;
 
             recognition.stop();
 
@@ -587,7 +558,7 @@
                       "application/json",
                     } ,
                     body:JSON.stringify({
-                        message:text,
+                        message: transcript,
                         userId,
                         userLanguage: currentLang  // "hi-IN" or "en-US"
                     })

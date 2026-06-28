@@ -85,6 +85,9 @@ export const generateGeminiResponse = async ({
             };
         }
 
+        // Force English-only response by prepending instruction to prompt
+        const englishOnlyPrompt = `IMPORTANT: You must respond in English only. Do not respond in Hindi or any other language. All responses must be in English.\n\n${prompt}`;
+
         const result = await retryWithBackoff(async () => {
             retryCount++;
             const controller = new AbortController();
@@ -100,7 +103,7 @@ export const generateGeminiResponse = async ({
                         {
                             parts: [
                                 {
-                                    text: prompt
+                                    text: englishOnlyPrompt
                                 }
                             ]
                         }
