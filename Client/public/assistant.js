@@ -347,13 +347,37 @@
             }
         }
 
-        // For Hindi, prefer Hindi voices
+        // For Hindi, prefer Microsoft/Google Hindi voices
         if (lang === "hi-IN") {
-            const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+            const preferredHindiVoices = [
+                "Microsoft Swara",
+                "Microsoft Heera",
+                "Microsoft Kalpana",
+                "Google हिन्दी",
+                "Google Hindi"
+            ];
+
+            // Preferred Hindi voices
+            for (const preferred of preferredHindiVoices) {
+                const voice = voices.find(v =>
+                    v.name.includes(preferred)
+                );
+                if (voice) {
+                    console.log("Selected Hindi voice:", voice.name);
+                    return voice;
+                }
+            }
+
+            // Any Hindi voice
+            const hindiVoice = voices.find(v =>
+                v.lang.toLowerCase().startsWith("hi")
+            );
             if (hindiVoice) {
-                console.log("Found Hindi voice:", hindiVoice.name);
+                console.log("Fallback Hindi voice:", hindiVoice.name);
                 return hindiVoice;
             }
+
+            console.warn("No Hindi voice found.");
         }
 
         // Fallback to first available voice
