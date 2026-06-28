@@ -530,50 +530,42 @@
 
         const recognition = new SpeechRecognition();
 
-        recognition.lang = currentLang;
-
-    recognition.continuous =
-      false;
-
-    recognition.interimResults =
-      false;
+        // hi-IN recognizes BOTH Hindi and English in Chrome/Edge
+        // This is the critical fix — en-US cannot transcribe Hindi speech
+        recognition.lang = "hi-IN";
+        recognition.continuous = false;
+        recognition.interimResults = false;
 
 
-      mic.onclick=()=>{
-        // Mark user interaction
-        userInteracted = true;
-        console.log("User interaction detected on mic click");
-        
-        // Prevent multiple clicks while already listening
-        if (recognition && wave.style.opacity === "1") {
-            console.log("Already listening, ignoring duplicate click");
-            return;
+        mic.onclick = () => {
+            userInteracted = true;
+            console.log("User interaction detected on mic click");
+
+            if (recognition && wave.style.opacity === "1") {
+                console.log("Already listening, ignoring duplicate click");
+                return;
+            }
+
+            wave.style.opacity = "1";
+            status.innerText = "Listening...";
+            userText.innerText = "";
+            aiText.innerText = "";
+
+            recognition.start();
         }
-        
-        wave.style.opacity = "1";
-
-      status.innerText =
-        "Listening...";
-
-      userText.innerText =
-        "";
-
-      aiText.innerText =
-        "";
-
-      recognition.start();
-      }
 
 
-      recognition.onresult = (e)=>{
-        const text = e.results[0][0].transcript
+        recognition.onresult = (e) => {
+            const text = e.results[0][0].transcript;
+            console.log("Raw transcript:", text);
 
-        userText.innerText = "You: " + text;
+            userText.innerText = "You: " + text;
 
-        // Detect language from user input and update currentLang
-        currentLang = detectLanguage(text);
+            // Detect language: Devanagari script = hi-IN, else en-US
+            currentLang = detectLanguage(text);
+            console.log("Detected language:", currentLang);
 
-        recognition.stop();
+            recognition.stop();
 
 
         setTimeout( async () => {
@@ -596,7 +588,8 @@
                     } ,
                     body:JSON.stringify({
                         message:text,
-                        userId
+                        userId,
+                        userLanguage: currentLang  // "hi-IN" or "en-US"
                     })
                 }, 3, 1000)
 

@@ -21,7 +21,7 @@ export const getAssistantConfig = async (req, res) => {
 
 export const askAssistant = async (req, res) => {
     try {
-        const { message, userId } = req.body
+        const { message, userId, userLanguage } = req.body
 
         if (!message) {
             return res.status(400).json({ message: "Message is required" })
@@ -79,20 +79,17 @@ export const askAssistant = async (req, res) => {
 
             // Navigation Commands
             const navigationWords = [
-
                 "open",
                 "go",
                 "start",
                 "show",
                 "navigate",
                 "take me",
-
             ];
 
             // Check navigation intent
             const wantsNavigation =
                 navigationWords.some((word) =>
-
                     cleanMessage.startsWith(word)
                 );
 
@@ -102,9 +99,7 @@ export const askAssistant = async (req, res) => {
                 // Find matching page
                 const matchedPage =
                     user.pages.find((page) =>
-
                         page.keywords.some((keyword) =>
-
                             cleanMessage.includes(
                                 keyword.toLowerCase()
                             )
@@ -119,35 +114,30 @@ export const askAssistant = async (req, res) => {
                         req.body.currentPath ===
                         matchedPage.path
                     ) {
-
                         return res.json({
-
                             success: true,
-
-                            response:
-                                `${matchedPage.name} already open`
-
+                            response: `${matchedPage.name} already open`
                         });
                     }
 
                     // Navigate
                     return res.json({
-
                         success: true,
-
                         action: "navigate",
-
                         path: matchedPage.path,
-
-                        response:
-                            `Opening ${matchedPage.name}`,
-
+                        response: `Opening ${matchedPage.name}`,
                     });
                 }
             }
         }
 
-
+        // Determine reply language instruction based on userLanguage sent from frontend
+        // "hi-IN" = user spoke Hindi/Hinglish → force Hindi reply
+        // "en-US" or anything else = user spoke English → force English reply
+        const isHindi = userLanguage === "hi-IN"
+        const languageInstruction = isHindi
+            ? `IMPORTANT: The user spoke in Hindi. You MUST reply in Hindi (Devanagari script). Do not reply in English.`
+            : `IMPORTANT: The user spoke in English. You MUST reply in English. Do not reply in Hindi.`
 
         const prompt = `
 
@@ -165,6 +155,7 @@ ${user.businessDescription}
 Assistant Tone:
 ${user.tone}
 
+${languageInstruction}
 
 Rules:
 
@@ -174,8 +165,6 @@ Rules:
 - Behave like smart voice assistant
 - Avoid long explanations
 - Keep responses short for quick voice playback
-
-Rules:
 
 Identity
 - You are ${user.assistantName}.
@@ -196,10 +185,7 @@ Business Knowledge
 - If information is unavailable, politely say you don't have that information.
 
 Conversation
-- Reply in the same language used by the user.
-- If the user speaks Hindi, reply in Hindi.
-- If the user speaks English, reply in English.
-- If the user mixes languages, naturally match their language.
+- ${isHindi ? "Reply ONLY in Hindi (Devanagari script). The user spoke Hindi." : "Reply ONLY in English. The user spoke English."}
 - Be friendly, natural, and conversational.
 - Keep replies short for voice playback.
 - Prefer replies under 15 words whenever possible.
@@ -215,46 +201,45 @@ Behavior
 - If navigation is available, guide users to the relevant page.
 - If a question is unrelated to the website, politely say you specialize in helping with ${user.businessName}.
 - Always maintain the configured tone: ${user.tone}.
-
 - Use the website's stored content as the primary source of truth.
 - Prioritize answering from the configured website data before using general knowledge.
 - Never contradict the configured website information.
 - If the answer is not available in the website data, clearly say that the information is not available.
-
 
 User Question:
 ${message}
 
 `;
 
-     const geminiResult = await generateGeminiResponse({prompt ,apikey: user.geminiApiKey , user })
+        const geminiResult = await generateGeminiResponse({ prompt, apikey: user.geminiApiKey, user })
 
-     // Handle structured response from Gemini
-     if (!geminiResult.success) {
-         console.error("Gemini API error:", geminiResult);
-         return res.status(geminiResult.status).json({
-             success: false,
-             errorType: geminiResult.errorType,
-             retryable: geminiResult.retryable,
-             message: geminiResult.message
-         });
-     }
-
-     const aiResponse = geminiResult.text;
-
-    if(user.plan === "free"){
-        user.totalMessages += 1
-        try {
-            await user.save()
-        } catch (saveError) {
-            console.error("Failed to save user message count:", saveError.message);
-            // Don't throw - still return the AI response
-        }
-    }
-    return  res.json({
-                success: true,
-                aiResponse
+        // Handle structured response from Gemini
+        if (!geminiResult.success) {
+            console.error("Gemini API error:", geminiResult);
+            return res.status(geminiResult.status).json({
+                success: false,
+                errorType: geminiResult.errorType,
+                retryable: geminiResult.retryable,
+                message: geminiResult.message
             });
+        }
+
+        const aiResponse = geminiResult.text;
+
+        if (user.plan === "free") {
+            user.totalMessages += 1
+            try {
+                await user.save()
+            } catch (saveError) {
+                console.error("Failed to save user message count:", saveError.message);
+                // Don't throw - still return the AI response
+            }
+        }
+
+        return res.json({
+            success: true,
+            aiResponse
+        });
 
     } catch (error) {
 
@@ -273,13 +258,11 @@ ${message}
 
         // Return 500 only for real server bugs
         return res.status(500).json({
-                success: false,
-                errorType: "server_error",
-                retryable: false,
-                message: "Internal server error. Please try again."
-            });
+            success: false,
+            errorType: "server_error",
+            retryable: false,
+            message: "Internal server error. Please try again."
+        });
 
     }
 }
-
-
