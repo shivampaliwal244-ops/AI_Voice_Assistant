@@ -44,7 +44,12 @@ export const askAssistant = async (req, res) => {
         const oldDefaultNames = ["Jarvis", "JARVIS", "Zarvis", "ZARVIS", "Shifra"]
         if (oldDefaultNames.includes(user.assistantName)) {
             user.assistantName = "Shifra AI"
-            await user.save()
+            try {
+                await user.save()
+            } catch (saveError) {
+                console.error("Failed to migrate assistant name:", saveError.message);
+                // Don't throw - continue with request
+            }
         }
 
         if (!user.geminiApiKey) {
@@ -57,9 +62,13 @@ export const askAssistant = async (req, res) => {
         }
 
         if (user.plan === "pro" && new Date(user.proExpiresAt) < new Date()) {
-            user.plan === "free"
-
-            await user.save()
+            user.plan = "free"
+            try {
+                await user.save()
+            } catch (saveError) {
+                console.error("Failed to update expired pro plan:", saveError.message);
+                // Don't throw - continue with request
+            }
 
             return res.status(400).json({ message: "Pro plan expired" })
         }
@@ -218,13 +227,29 @@ ${message}
 
 `;
 
-     const aiResponse = await generateGeminiResponse({prompt ,apikey: user.geminiApiKey , user })
+     const geminiResult = await generateGeminiResponse({prompt ,apikey: user.geminiApiKey , user })
+
+     // Handle structured response from Gemini
+     if (!geminiResult.success) {
+         console.error("Gemini API error:", geminiResult);
+         return res.status(geminiResult.status).json({
+             success: false,
+             errorType: geminiResult.errorType,
+             retryable: geminiResult.retryable,
+             message: geminiResult.message
+         });
+     }
+
+     const aiResponse = geminiResult.text;
 
     if(user.plan === "free"){
         user.totalMessages += 1
-
-     await user.save()
-
+        try {
+            await user.save()
+        } catch (saveError) {
+            console.error("Failed to save user message count:", saveError.message);
+            // Don't throw - still return the AI response
+        }
     }
     return  res.json({
                 success: true,
@@ -233,12 +258,25 @@ ${message}
 
     } catch (error) {
 
-        console.log(error)
+        console.error("Assistant Controller Error:", error.message);
+        console.error("Full error stack:", error.stack);
 
-        return  res.status(500).json({
+        // Check if it's a MongoDB connection error
+        if (error.message && error.message.includes('MongooseServerSelectionError')) {
+            return res.status(503).json({
                 success: false,
-                message:
-                    "Assistant AI Error",
+                errorType: "database_unavailable",
+                retryable: true,
+                message: "Database connection error. Please try again later."
+            });
+        }
+
+        // Return 500 only for real server bugs
+        return res.status(500).json({
+                success: false,
+                errorType: "server_error",
+                retryable: false,
+                message: "Internal server error. Please try again."
             });
 
     }

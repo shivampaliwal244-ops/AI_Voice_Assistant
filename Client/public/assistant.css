@@ -15,6 +15,8 @@
   justify-content:center;
   overflow:hidden;
   transition:.3s;
+  visibility: visible;
+  opacity: 1;
 }
 .shifra-btn img{
   width:34px;
@@ -42,6 +44,8 @@
 
   z-index:999999;
   display:none;
+  visibility: hidden;
+  opacity: 0;
 
   box-shadow:
     0 20px 80px rgba(0,0,0,.32);
@@ -574,6 +578,43 @@ margin-top:18px;
 
 
 
+@media(max-width:768px){
+  .shifra-popup{
+    width:360px;
+    min-width:360px;
+    max-width:360px;
+
+    height:580px;
+    min-height:580px;
+    max-height:580px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:90px;
+
+    border-radius:32px;
+  }
+
+  .shifra-btn{
+    width:66px;
+    height:66px;
+    right:16px;
+    bottom:16px;
+  }
+  .shifra-btn img{
+    width: 32px;
+    height: 32px;
+  }
+
+   .shifra-title{
+    font-size:28px;
+  }
+
+  .shifra-sub{
+    font-size:14px;
+  }
+}
+
 @media(max-width:640px){
   .shifra-popup{
     width:340px;
@@ -611,7 +652,7 @@ margin-top:18px;
   }
 }
 
-@media(max-width:400px){
+@media(max-width:430px){
   .shifra-popup{
     width:320px;
     min-width:320px;
@@ -631,8 +672,8 @@ margin-top:18px;
   .shifra-btn{
     width:60px;
     height:60px;
-    right:10px;
-    bottom:10px;
+    right:12px;
+    bottom:12px;
   }
   .shifra-btn img{
     width: 28px;
@@ -646,20 +687,206 @@ margin-top:18px;
   .shifra-sub{
     font-size:12px;
   }
+}
+
+@media(max-width:412px){
+  .shifra-popup{
+    width:310px;
+    min-width:310px;
+    max-width:310px;
+
+    height:530px;
+    min-height:530px;
+    max-height:530px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:68px;
+
+    border-radius:22px;
+  }
+
+  .shifra-btn{
+    width:58px;
+    height:58px;
+    right:10px;
+    bottom:10px;
+  }
+  .shifra-btn img{
+    width: 27px;
+    height: 27px;
+  }
+
+   .shifra-title{
+    font-size:23px;
+  }
+
+  .shifra-sub{
+    font-size:12px;
+  }
+}
+
+@media(max-width:390px){
+  .shifra-popup{
+    width:305px;
+    min-width:305px;
+    max-width:305px;
+
+    height:525px;
+    min-height:525px;
+    max-height:525px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:65px;
+
+    border-radius:22px;
+  }
+
+  .shifra-btn{
+    width:58px;
+    height:58px;
+    right:10px;
+    bottom:10px;
+  }
+  .shifra-btn img{
+    width: 27px;
+    height: 27px;
+  }
+
+   .shifra-title{
+    font-size:23px;
+  }
+
+  .shifra-sub{
+    font-size:12px;
+  }
+}
+
+@media(max-width:375px){
+  .shifra-popup{
+    width:300px;
+    min-width:300px;
+    max-width:300px;
+
+    height:520px;
+    min-height:520px;
+    max-height:520px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:62px;
+
+    border-radius:20px;
+  }
+
+  .shifra-btn{
+    width:56px;
+    height:56px;
+    right:8px;
+    bottom:8px;
+  }
+  .shifra-btn img{
+    width: 26px;
+    height: 26px;
+  }
+
+   .shifra-title{
+    font-size:22px;
+  }
+
+  .shifra-sub{
+    font-size:11px;
+  }
+}
+
+@media(max-width:360px){
+  .shifra-popup{
+    width:295px;
+    min-width:295px;
+    max-width:295px;
+
+    height:515px;
+    min-height:515px;
+    max-height:515px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:60px;
+
+    border-radius:20px;
+  }
+
+  .shifra-btn{
+    width:54px;
+    height:54px;
+    right:8px;
+    bottom:8px;
+  }
+  .shifra-btn img{
+    width: 25px;
+    height: 25px;
+  }
+
+   .shifra-title{
+    font-size:21px;
+  }
+
+  .shifra-sub{
+    font-size:11px;
+  }
+}
+
+@media(max-width:320px){
+  .shifra-popup{
+    width:280px;
+    min-width:280px;
+    max-width:280px;
+
+    height:500px;
+    min-height:500px;
+    max-height:500px;
+
+    right:50%;
+    transform:translateX(50%);
+    bottom:55px;
+
+    border-radius:18px;
+  }
+
+  .shifra-btn{
+    width:52px;
+    height:52px;
+    right:6px;
+    bottom:6px;
+  }
+  .shifra-btn img{
+    width: 24px;
+    height: 24px;
+  }
+
+   .shifra-title{
+    font-size:20px;
+  }
+
+  .shifra-sub{
+    font-size:10px;
+  }
 
   .shifra-orb{
-    width:100px;
-    height:100px;
+    width:80px;
+    height:80px;
   }
 
   .shifra-mic{
-    width:68px;
-    height:68px;
+    width:56px;
+    height:56px;
   }
 
   .shifra-mic-icon{
-    width:28px;
-    height:28px;
+    width:24px;
+    height:24px;
   }
 }
+
 

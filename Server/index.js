@@ -32,11 +32,12 @@ const privateCors =
 
   const publicCors =
   cors({
-    origin: [
-      "https://ai-voice-assistant-y7a8.onrender.com",
-      "http://localhost:5173",
-      "http://localhost:3000"
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      // Allow any origin for embedded websites
+      callback(null, true);
+    },
     credentials: true
   });
 
